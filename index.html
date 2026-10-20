@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TaskFlow | Your Planning Workspace</title>
+
+  <style>
+    :root {
+      --bg: #f3f5f9;
+      --surface: #ffffff;
+      --text: #233047;
+      --muted: #8a95a8;
+      --border: #e5eaf2;
+      --primary: #6458d8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #c7c0fa;
+      outline-offset: 3px;
+    }
+
+    .app {
+      max-width: 1500px;
+      height: 100%;
+      margin: auto;
+      padding: 0 36px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 750;
+      letter-spacing: -0.8px;
+    }
+
+    .brand-icon {
+      width: 35px;
+      height: 35px;
+      display: grid;
+      place-items: center;
+      background: var(--primary);
+      color: white;
+      border-radius: 11px;
+      font-size: 23px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .header-note {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .badge {
+      padding: 7px 11px;
+      border: 1px solid #dfdaf4;
+      background: #eeebfb;
+      border-radius: 25px;
+      color: #8578b3;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .intro {
+      padding: 24px 0;
+      flex-shrink: 0;
+    }
+
+    .eyebrow {
+      color: var(--primary);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    h1 {
+      margin: 9px 0;
+      font-size: clamp(25px, 3vw, 37px);
+      letter-spacing: -1.2px;
+    }
+
+    .intro p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .workspace {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 22px;
+    }
+
+    .panel {
+      min-width: 0;
+      min-height: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(35, 48, 71, 0.025);
+    }
+
+    .panel-header {
+      padding: 20px 23px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step {
+      width: 27px;
+      height: 27px;
+      display: grid;
+      place-items: center;
+      background: #f0eefb;
+      color: var(--primary);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: -0.2px;
+    }
+
+    .tiny {
+      font-size: 9px;
+      color: #a3adbc;
+    }
+
+    .form-body {
+      padding: 23px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    textarea {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      resize: none;
+      border: 1px solid #e1e4ef;
+      background: #fafbfe;
+      border-radius: 11px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.9;
+      color: #4d5870;
+      overflow: auto;
+      scrollbar-width: none;
+    }
+
+    textarea::-webkit-scrollbar {
+      display: none;
+    }
+
+    textarea:focus {
+      outline: 2px solid #cdc6f6;
+      outline-offset: 2px;
+    }
+
+    textarea::placeholder {
+      color: #a4adbd;
+    }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 14px 0;
+      flex-shrink: 0;
+    }
+
+    .example {
+      border: 1px solid #e7e4f1;
+      background: #faf9fe;
+      color: #8b80a7;
+      font-size: 10px;
+      border-radius: 6px;
+      padding: 7px 10px;
+    }
+
+    .example:hover {
+      border-color: #bcb1e9;
+      color: var(--primary);
+    }
+
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      background: var(--primary);
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .primary:hover:not(:disabled) {
+      background: #5347c3;
+    }
+
+    .helper {
+      font-size: 9px;
+      line-height: 1.8;
+      color: #a0aabc;
+      text-align: right;
+    }
+
+    .status {
+      font-size: 11px;
+      line-height: 1.7;
+      color: #8175a2;
+      margin: 12px 0 0;
+      max-height: 60px;
+      overflow: auto;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+
+    .status:empty {
+      display: none;
+    }
+
+    .status.error {
+      color: #bb5c6c;
+    }
+
+    .result-toolbar {
+      padding: 16px 23px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #f0f2f7;
+      flex-shrink: 0;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .priority {
+      font-size: 9px;
+      border-radius: 20px;
+      padding: 5px 9px;
+    }
+
+    .high {
+      background: #fceef0;
+      color: #bb6b77;
+    }
+
+    .medium {
+      background: #fcf5e4;
+      color: #b19352;
+    }
+
+    .low {
+      background: #eaf5ef;
+      color: #6c9c7c;
+    }
+
+    .copy {
+      border: 1px solid var(--border);
+      background: white;
+      color: #919caf;
+      padding: 6px 9px;
+      border-radius: 6px;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .result-body {
+      flex: 1;
+      min-height: 0;
+      padding: 23px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 0;
+      border: 1px dashed #e5e7f1;
+      border-radius: 12px;
+      background: #fcfcff;
+      padding: 15px;
+    }
+
+    .empty-icon {
+      width: 57px;
+      height: 57px;
+      border-radius: 17px;
+      background: #f0edf9;
+      color: #b1a5d7;
+      display: grid;
+      place-items: center;
+      font-size: 29px;
+      margin-bottom: 16px;
+    }
+
+    .empty strong {
+      font-size: 13px;
+      color: #8590a4;
+      font-weight: 600;
+    }
+
+    .empty p {
+      color: #a4aebe;
+      font-size: 11px;
+      line-height: 1.9;
+      margin-bottom: 0;
+    }
+
+    .output {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      scrollbar-width: none;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      line-height: 2;
+      color: #58647b;
+      padding: 3px;
+    }
+
+    .output::-webkit-scrollbar {
+      display: none;
+    }
+
+    .view-tabs {
+      display: flex;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 15px;
+      flex-shrink: 0;
+    }
+
+    .view-tab {
+      padding: 0 0 10px;
+      background: none;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      font-size: 10px;
+      color: #a1a9b9;
+    }
+
+    .view-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 15px;
+      font-size: 9px;
+      color: #a6afbd;
+      flex-shrink: 0;
+    }
+
+    .spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid #ffffff70;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-height: 720px) {
+      header {
+        min-height: 60px;
+      }
+
+      .intro {
+        padding: 15px 0;
+      }
+
+      h1 {
+        font-size: 28px;
+        margin: 7px 0;
+      }
+
+      .panel-header {
+        padding: 15px 18px;
+      }
+
+      .form-body,
+      .result-body {
+        padding: 18px;
+      }
+
+      .examples {
+        margin: 10px 0;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .app {
+        padding: 0 14px 12px;
+      }
+
+      header {
+        min-height: 57px;
+      }
+
+      .header-note,
+      .helper,
+      .tiny {
+        display: none;
+      }
+
+      .brand {
+        font-size: 19px;
+      }
+
+      .brand-icon {
+        width: 30px;
+        height: 30px;
+      }
+
+      .intro {
+        padding: 14px 0;
+      }
+
+      h1 {
+        font-size: 25px;
+      }
+
+      .intro p {
+        display: none;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .panel-header {
+        padding: 11px 15px;
+      }
+
+      .form-body,
+      .result-body {
+        padding: 13px;
+      }
+
+      .form-body label {
+        display: none;
+      }
+
+      textarea {
+        padding: 10px;
+        font-size: 12px;
+      }
+
+      .examples {
+        margin: 9px 0;
+      }
+
+      .example {
+        font-size: 9px;
+        padding: 5px 8px;
+      }
+
+      .primary {
+        padding: 9px 12px;
+        font-size: 10px;
+      }
+
+      .result-toolbar {
+        padding: 9px 15px;
+      }
+
+      .empty-icon {
+        display: none;
+      }
+
+      .empty p {
+        margin-top: 5px;
+      }
+
+      .output {
+        font-size: 12px;
+      }
+
+      footer {
+        padding-top: 10px;
+        font-size: 8px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .spinner {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">✦</span>
+        TaskFlow
+      </div>
+
+      <div class="header-right">
+        <span class="header-note">YOUR PERSONAL PLANNING SPACE</span>
+        <span class="badge">Groq + LangGraph</span>
+      </div>
+    </header>
+
+    <section class="intro">
+      <div class="eyebrow">LESS CHAOS. MORE CLARITY.</div>
+      <h1>Make room for what matters.</h1>
+      <p>
+        Describe your day or your week. Turn scattered thoughts
+        into a clear, prioritized task list.
+      </p>
+    </section>
+
+    <div class="workspace">
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="step">01</span>
+            <h2>Your plans</h2>
+          </div>
+
+          <span class="tiny">WRITE NATURALLY</span>
+        </div>
+
+        <form class="form-body" id="taskForm">
+          <label for="message">What do you need to get done?</label>
+
+          <textarea
+            id="message"
+            maxlength="5000"
+            placeholder="Finish my assignment tomorrow, buy groceries today, prepare for next week's meeting..."
+            required
+          ></textarea>
+
+          <div class="examples">
+            <button class="example" type="button" data-example="study">
+              Study plan
+            </button>
+
+            <button class="example" type="button" data-example="week">
+              Whole week
+            </button>
+
+            <button class="example" type="button" data-example="daily">
+              Daily tasks
+            </button>
+          </div>
+
+          <div class="form-footer">
+            <button class="primary" id="submitButton" type="submit">
+              <span class="spinner" id="spinner" hidden></span>
+              <span id="buttonLabel">Organize my tasks ↗</span>
+            </button>
+
+            <span class="helper">
+              Include deadlines for<br>better prioritization.
+            </span>
+          </div>
+
+          <p class="status" id="status" role="status"></p>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="step">02</span>
+            <h2>Your next steps</h2>
+          </div>
+
+          <span class="tiny" id="resultState">READY WHEN YOU ARE</span>
+        </div>
+
+        <div class="result-toolbar">
+          <div class="legend">
+            <span class="priority high">High</span>
+            <span class="priority medium">Medium</span>
+            <span class="priority low">Low</span>
+          </div>
+
+          <button class="copy" id="copyButton" type="button" hidden>
+            Copy list
+          </button>
+        </div>
+
+        <div class="result-body">
+          <div class="empty" id="empty">
+            <div class="empty-icon" aria-hidden="true">✓</div>
+            <strong>A clearer plan starts here.</strong>
+            <p>
+              Add your tasks on the left.<br>
+              Your organized list will appear here.
+            </p>
+          </div>
+
+          <div class="view-tabs" id="viewTabs" hidden>
+            <button
+              class="view-tab active"
+              id="organizedTab"
+              type="button"
+            >
+              Organized list
+            </button>
+
+            <button
+              class="view-tab"
+              id="extractedTab"
+              type="button"
+            >
+              Extracted tasks
+            </button>
+          </div>
+
+          <div
+            class="output"
+            id="output"
+            tabindex="0"
+            aria-label="Task results"
+            aria-live="polite"
+            hidden
+          ></div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <span>Extract → Prioritize → Format</span>
+      <span>AI Task Organizer</span>
+    </footer>
+  </div>
+
+  <script>
+    const get = id => document.getElementById(id);
+
+    const examples = {
+      study:
+        "Finish my math homework tomorrow, submit my Python " +
+        "assignment today, and revise English next week.",
+
+      week:
+        "Finish math homework today. Submit my Python assignment " +
+        "tomorrow. Complete my science report in 3 days, revise " +
+        "English in 4 days, clean my room in 5 days, prepare my " +
+        "presentation in 6 days, and review all subjects in 7 days. " +
+        "Also urgently email my teacher today.",
+
+      daily:
+        "Buy groceries today, call my friend tomorrow, " +
+        "clean my room and pay the urgent electricity bill today."
+    };
+
+    let busy = false;
+    let organizedText = "";
+    let extractedText = "";
+    let currentView = "organized";
+    let copyTimer;
+
+    function setBusy(value) {
+      busy = value;
+
+      get("submitButton").disabled = value;
+      get("message").disabled = value;
+      get("spinner").hidden = !value;
+
+      get("buttonLabel").textContent = value
+        ? "Organizing your tasks..."
+        : "Organize my tasks ↗";
+
+      document.querySelectorAll("[data-example]").forEach(button => {
+        button.disabled = value;
+      });
+    }
+
+    function showView(view) {
+      currentView = view;
+
+      get("organizedTab").classList.toggle(
+        "active",
+        view === "organized"
+      );
+
+      get("extractedTab").classList.toggle(
+        "active",
+        view === "extracted"
+      );
+
+      get("output").textContent = view === "organized"
+        ? organizedText
+        : extractedText;
+
+      get("output").scrollTop = 0;
+    }
+
+    document.querySelectorAll("[data-example]").forEach(button => {
+      button.addEventListener("click", () => {
+        get("message").value = examples[button.dataset.example];
+        get("message").focus();
+      });
+    });
+
+    get("organizedTab").addEventListener("click", () => {
+      showView("organized");
+    });
+
+    get("extractedTab").addEventListener("click", () => {
+      showView("extracted");
+    });
+
+    get("taskForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      if (busy) return;
+
+      const message = get("message").value.trim();
+
+      if (!message) {
+        get("status").className = "status error";
+        get("status").textContent = "Please enter at least one task.";
+        get("message").focus();
+        return;
+      }
+
+      clearTimeout(copyTimer);
+
+      organizedText = "";
+      extractedText = "";
+
+      get("copyButton").hidden = true;
+      get("copyButton").textContent = "Copy list";
+      get("viewTabs").hidden = true;
+      get("empty").hidden = true;
+      get("output").hidden = false;
+      get("output").textContent =
+        "Finding your tasks and arranging their priorities...";
+
+      get("status").className = "status";
+      get("status").textContent =
+        "Your plan is being organized. Please wait.";
+
+      get("resultState").textContent = "WORKING ON YOUR PLAN";
+
+      setBusy(true);
+
+      try {
+        const response = await fetch("/organize", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message })
+        });
+
+        let data;
+
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error(
+            "Unexpected server response. Please check your terminal."
+          );
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            typeof data.detail === "string"
+              ? data.detail
+              : "Please check your input."
+          );
+        }
+
+        organizedText = data.priorities || data.result;
+        extractedText = data.tasks;
+
+        get("viewTabs").hidden = false;
+        get("copyButton").hidden = false;
+        get("status").textContent = "Your organized plan is ready.";
+        get("resultState").textContent = "PLAN READY";
+
+        showView("organized");
+      } catch (error) {
+        get("status").className = "status error";
+
+        get("status").textContent = error instanceof TypeError
+          ? "Cannot connect. Check that your Python server is running."
+          : error.message;
+
+        get("output").textContent =
+          "No result generated. Please try again.";
+
+        get("resultState").textContent = "PLEASE TRY AGAIN";
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    get("copyButton").addEventListener("click", async () => {
+      const text = currentView === "organized"
+        ? organizedText
+        : extractedText;
+
+      clearTimeout(copyTimer);
+
+      try {
+        await navigator.clipboard.writeText(text);
+        get("copyButton").textContent = "Copied!";
+      } catch {
+        get("copyButton").textContent = "Select text to copy";
+      }
+
+      copyTimer = setTimeout(() => {
+        get("copyButton").textContent = "Copy list";
+      }, 1800);
+    });
+  </script>
+</body>
+</html>
